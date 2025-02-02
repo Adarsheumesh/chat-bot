@@ -63,5 +63,5 @@ def send_message():
     response = chatbot.get_response(user_message)
     return jsonify({'response': response})
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# Remove the if __name__ == '__main__' block for Vercel deployment
+app = app
