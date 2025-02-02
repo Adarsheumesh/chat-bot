@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniGuide - Powered by Gemini</title>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Google Sans', sans-serif;
+        }
+
+        body {
+            background: #1a1a1a;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #e8eaed;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+            padding: 1.5rem;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 1000;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .chat-container {
+            flex: 1;
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 1rem;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background: #2d2d2d;
+            border-radius: 28px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            margin-bottom: 1.5rem;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            border-radius: 18px;
+            max-width: 85%;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideIn 0.3s ease forwards;
+            line-height: 1.5;
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user-message {
+            background: #1a73e8;
+            margin-left: auto;
+            color: white;
+            border: 1px solid #1557b0;
+        }
+
+        .bot-message {
+            background: #353535;
+            margin-right: auto;
+            color: #e8eaed;
+            border: 1px solid #404040;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .input-container {
+            display: flex;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: #2d2d2d;
+            border-radius: 28px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: 1px solid #404040;
+            border-radius: 24px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            color: #e8eaed;
+            background: #353535;
+        }
+
+        #user-input::placeholder {
+            color: #9aa0a6;
+        }
+
+        #user-input:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+        }
+
+        #send-button {
+            padding: 1rem 2rem;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #send-button:hover {
+            background: #1557b0;
+            box-shadow: 0 2px 6px rgba(26,115,232,0.3);
+        }
+
+        #send-button:disabled {
+            background: #404040;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #9aa0a6;
+            padding: 1rem;
+            font-style: normal;
+        }
+
+        .typing-indicator {
+            display: inline-flex;
+            gap: 4px;
+            margin-left: 8px;
+        }
+
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+            background: #1a73e8;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Code block styling */
+        pre {
+            background: #202124;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            border: 1px solid #404040;
+        }
+
+        code {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9rem;
+            color: #e8eaed;
+        }
+
+        /* Markdown styling */
+        .bot-message h1, .bot-message h2, .bot-message h3 {
+            margin: 1rem 0;
+            color: #e8eaed;
+        }
+
+        .bot-message ul, .bot-message ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .bot-message p {
+            margin-bottom: 0.8rem;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #404040;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4d4d4d;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                margin: 1rem;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        .response-container {
+            background: #2d2d2d;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .response-header {
+            color: #e8eaed;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid #404040;
+        }
+
+        .response-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .response-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #404040;
+            transition: all 0.3s ease;
+        }
+
+        .response-item:last-child {
+            border-bottom: none;
+        }
+
+        .response-item:hover {
+            background: #353535;
+        }
+
+        .response-number {
+            color: #1a73e8;
+            font-weight: 500;
+            margin-right: 1rem;
+            min-width: 2rem;
+        }
+
+        .response-text {
+            color: #e8eaed;
+            flex: 1;
+            line-height: 1.5;
+        }
+
+        /* Update bot message styling to accommodate lists */
+        .bot-message {
+            background: #2d2d2d;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .bot-message:not(:has(.response-container)) {
+            padding: 1.5rem;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 1rem;
+        }
+
+        #clear-button {
+            padding: 1rem 2rem;
+            background: #353535;
+            color: #e8eaed;
+            border: 1px solid #404040;
+            border-radius: 24px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #clear-button:hover {
+            background: #404040;
+            border-color: #1a73e8;
+        }
+
+        #clear-button svg {
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header animate__animated animate__fadeIn">
+        <h1>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.88-11.71L10 14.17l-1.88-1.88a.996.996 0 1 0-1.41 1.41l2.59 2.59c.39.39 1.02.39 1.41 0L17.3 9.7a.996.996 0 1 0-1.41-1.41z"/>
+            </svg>
+            OmniGuide
+        </h1>
+    </div>
+    
+    <div class="chat-container animate__animated animate__fadeIn">
+        <div class="messages" id="chat-messages">
+            <div class="message bot-message animate__animated animate__fadeIn">
+                Hi! I'm OmniGuide, your AI assistant. How can I help you today?
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            Generating response
+            <div class="typing-indicator">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <div class="button-container">
+                <button id="clear-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"></path>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                    </svg>
+                    Clear Chat
+                </button>
+            </div>
+            <input type="text" id="user-input" placeholder="Ask me anything...">
+            <button id="send-button">
+                Send
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const messagesContainer = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const loadingIndicator = document.getElementById('loading');
+        const clearButton = document.getElementById('clear-button');
+
+        function formatResponse(content) {
+            // Updated regex to handle double-digit numbers
+            const hasListItems = /^(?:\d{1,2}\.|\-|\*|\•)\s/m.test(content);
+            
+            if (hasListItems) {
+                const lines = content.split('\n');
+                let formattedContent = '<div class="response-container">';
+                
+                if (lines[0] && !lines[0].match(/^(?:\d{1,2}\.|\-|\*|\•)\s/)) {
+                    formattedContent += `<h2 class="response-header">${lines[0]}</h2>`;
+                    lines.shift();
+                }
+                
+                formattedContent += '<ul class="response-list">';
+                
+                lines.forEach(line => {
+                    if (line.trim()) {
+                        // Updated regex to capture double-digit numbers
+                        const listMatch = line.match(/^(\d{1,2}\.|\-|\*|\•\s*)(.*)/);
+                        if (listMatch) {
+                            const [_, number, text] = listMatch;
+                            formattedContent += `
+                                <li class="response-item">
+                                    <span class="response-number">${number}</span>
+                                    <span class="response-text">${text}</span>
+                                </li>`;
+                        } else {
+                            formattedContent += `<li class="response-item"><span class="response-text">${line}</span></li>`;
+                        }
+                    }
+                });
+                
+                formattedContent += '</ul></div>';
+                return formattedContent;
+            }
+            
+            return content;
+        }
+
+        function addMessage(content, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'} animate__animated animate__fadeIn`;
+            
+            if (isUser) {
+                messageDiv.textContent = content;
+            } else {
+                messageDiv.innerHTML = formatResponse(content);
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, true);
+            userInput.value = '';
+            loadingIndicator.style.display = 'block';
+            sendButton.disabled = true;
+
+            try {
+                const response = await fetch('/send_message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message }),
+                });
+
+                const data = await response.json();
+                
+                setTimeout(() => {
+                    addMessage(data.response, false);
+                    loadingIndicator.style.display = 'none';
+                    sendButton.disabled = false;
+                }, 500);
+                
+            } catch (error) {
+                addMessage('Sorry, something went wrong. Please try again.', false);
+                loadingIndicator.style.display = 'none';
+                sendButton.disabled = false;
+            }
+        }
+
+        function clearChat() {
+            // Clear the messages container
+            messagesContainer.innerHTML = '';
+            
+            // Add back the initial greeting
+            const greeting = document.createElement('div');
+            greeting.className = 'message bot-message animate__animated animate__fadeIn';
+            greeting.textContent = "Hi! I'm OmniGuide, your AI assistant. How can I help you today?";
+            messagesContainer.appendChild(greeting);
+            
+            // Clear the chat history in the OmniGuide instance
+            chatbot.chat_history = [];
+            
+            // Clear the input field
+            userInput.value = '';
+            
+            // Focus on input
+            userInput.focus();
+        }
+
+        clearButton.addEventListener('click', () => {
+            // Add confirmation dialog
+            if (confirm('Are you sure you want to clear the chat history?')) {
+                clearChat();
+            }
+        });
+
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        userInput.focus();
+    </script>
+</body>
+</html> 
